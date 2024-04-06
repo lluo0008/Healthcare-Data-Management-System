@@ -11,7 +11,7 @@ namespace Healthcare_Data_Management_System
         public HealthcareContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<HealthcareContext>();
-            optionsBuilder.UseSqlServer("Server=LAWRENCEPC\\SQLEXPRESS;Database=HDMS_DB;Trusted_Connection=False;MultipleActiveResultSets=true;TrustServerCertificate = true");
+            optionsBuilder.UseSqlServer("Server=LAWRENCEPC\\SQLEXPRESS;Database=HDMS_DB;User Id =LAWRENCEPC\\xlllu;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate = true");
 
             return new HealthcareContext(optionsBuilder.Options);
         }
