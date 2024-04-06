@@ -11,7 +11,7 @@ var app = builder.Build();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HealthcareContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("HealthcareDB")));
+        options.UseSqlServer(builder.Configuration.GetConnectionString("HDMS_DB")));
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -33,10 +33,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
-
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddDbContext<HealthcareContext>(options =>
-        options.UseSqlServer(Configuration.GetConnectionString("HealthcareDB")));
-}
