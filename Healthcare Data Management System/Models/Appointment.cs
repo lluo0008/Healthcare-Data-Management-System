@@ -10,7 +10,7 @@ namespace Healthcare_Data_Management_System.Models
         [Required(ErrorMessage = "Patient ID is required")]
         public int PatientID { get; set; }
 
-        public Patient Patient { get; set; }
+        //public Patient Patient { get; set; }
 
         [Required(ErrorMessage = "Doctor ID is required")]
         public int DoctorID { get; set; }

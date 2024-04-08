@@ -32,17 +32,17 @@ namespace Healthcare_Data_Management_System.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
         {
-            using (var connection = new SqlConnection("Server=LAWRENCEPC\\SQLEXPRESS;Database=HDMS_DB;User Id =LAWRENCEPC\\xlllu;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate = true"))
+            using (var connection = new SqlConnection(Globals.ConnectionString))
             {
                 var patients = await connection.QueryAsync<Patient>("SELECT * FROM Patients");
                 return Ok(patients);
             }
         }
 
-        [HttpGet]
+        [HttpGet("ByName")]
         public async Task<ActionResult<IEnumerable<Patient>>> GetPatientsByName([FromQuery(Name = "name")] string name)
         {
-            using (var connection = new SqlConnection("YourConnectionString"))
+            using (var connection = new SqlConnection(Globals.ConnectionString))
             {
                 var patients = await connection.QueryAsync<Patient>("SELECT * FROM Patients WHERE FirstName LIKE @Name OR LastName LIKE @Name", new { Name = $"%{name}%" });
                 return Ok(patients);
@@ -55,9 +55,9 @@ namespace Healthcare_Data_Management_System.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<ActionResult<Patient>> CreatePatient( Patient patient)
         {
-            using (var connection = new SqlConnection("Server=LAWRENCEPC\\SQLEXPRESS;Database=HDMS_DB;User Id =LAWRENCEPC\\xlllu;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate = true"))
+            using (var connection = new SqlConnection(Globals.ConnectionString))
             {
-                var query = "INSERT INTO Patients (FirstName, LastName, DateOfBirth) VALUES (@FirstName, @LastName, @DateOfBirth); SELECT SCOPE_IDENTITY();";
+                var query = "INSERT INTO Patients (FirstName, LastName, DateOfBirth, Address) VALUES (@FirstName, @LastName, @DateOfBirth, @Address); SELECT SCOPE_IDENTITY();";
                 var patientID = await connection.ExecuteScalarAsync<int>(query, patient);
                 patient.ID = patientID;
                 return CreatedAtAction(nameof(GetPatients), new { id = patient.ID }, patient);
@@ -93,9 +93,9 @@ namespace Healthcare_Data_Management_System.Controllers
                 return BadRequest();
             }
 
-            using (var connection = new SqlConnection("YourConnectionString"))
+            using (var connection = new SqlConnection(Globals.ConnectionString))
             {
-                var query = "UPDATE Patients SET Name = @FirstName, @LastName, DateOfBirth = @DateOfBirth WHERE ID = @ID";
+                var query = "UPDATE Patients SET Name = @FirstName, @LastName, DateOfBirth = @DateOfBirth, Address = @Address WHERE ID = @ID";
                 var affectedRows = await connection.ExecuteAsync(query, patient);
                 if (affectedRows == 0)
                 {
@@ -143,7 +143,7 @@ namespace Healthcare_Data_Management_System.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePatient(int id)
         {
-            using (var connection = new SqlConnection("YourConnectionString"))
+            using (var connection = new SqlConnection(Globals.ConnectionString))
             {
                 var query = "DELETE FROM Patients WHERE ID = @ID";
                 var affectedRows = await connection.ExecuteAsync(query, new { ID = id });
