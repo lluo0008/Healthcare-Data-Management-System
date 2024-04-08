@@ -4,10 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
+using Dapper;
 
 namespace Healthcare_Data_Management_System.Controllers
 {
-    public class AppointmentsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AppointmentsController : ControllerBase
     {
         private readonly HealthcareContext _context;
 
@@ -17,14 +21,49 @@ namespace Healthcare_Data_Management_System.Controllers
         }
 
 
-        private bool AppointmentExists(int id)
+        /*private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.ID == id);
+        }*/
+
+        //read operation
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments()
+        {
+            using (var connection = new SqlConnection("Server=LAWRENCEPC\\SQLEXPRESS;Database=HDMS_DB;User Id =LAWRENCEPC\\xlllu;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate = true"))
+            {
+                var appointments = await connection.QueryAsync<Appointment>("SELECT * FROM Appointments");
+                return Ok(appointments);
+            }
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Appointment>> GetAppointment(int id)
+        {
+            using (var connection = new SqlConnection(Globals.ConnectionString))
+            {
+                var appointment = await connection.QueryFirstOrDefaultAsync<Appointment>("SELECT * FROM Appointments WHERE ID = @ID", new { ID = id });
+                if (appointment == null)
+                {
+                    return NotFound();
+                }
+                return Ok(appointment);
+            }
+        }
 
         //create operation
         [HttpPost]
+        public async Task<ActionResult<Appointment>> CreateAppointment(Appointment appointment)
+        {
+            using (var connection = new SqlConnection(Globals.ConnectionString))
+            {
+                var query = "INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, AppointmentTime) VALUES (@PatientID, @DoctorID, @AppointmentDate, @AppointmentTime); SELECT SCOPE_IDENTITY();";
+                var appointmentID = await connection.ExecuteScalarAsync<int>(query, appointment);
+                appointment.ID = appointmentID;
+                return CreatedAtAction(nameof(GetAppointment), new { id = appointment.ID }, appointment);
+            }
+        }
+        /*
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,PatientID,DoctorID,AppointmentDate,AppointmentTime")] Appointment appointment)
         {
@@ -36,17 +75,39 @@ namespace Healthcare_Data_Management_System.Controllers
             }
             return View(appointment);
         }
+        */
 
 
         //read operation
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Appointments.ToListAsync());
-        }
+        /*public async Task<IActionResult> Index()
+    {
+        return View(await _context.Appointments.ToListAsync());
+    }*/
 
 
         //update operation
-        [HttpPost]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAppointment(int id, Appointment appointment)
+        {
+            if (id != appointment.ID)
+            {
+                return BadRequest();
+            }
+
+            using (var connection = new SqlConnection(Globals.ConnectionString))
+            {
+                var query = "UPDATE Appointments SET PatientID = @PatientID, DoctorID = @DoctorID, AppointmentDate = @AppointmentDate, AppointmentTime = @AppointmentTime WHERE ID = @ID";
+                var affectedRows = await connection.ExecuteAsync(query, appointment);
+                if (affectedRows == 0)
+                {
+                    return NotFound();
+                }
+            }
+
+            return NoContent();
+        }
+
+        /*[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,PatientID,DoctorID,AppointmentDate,AppointmentTime")] Appointment appointment)
         {
@@ -76,10 +137,25 @@ namespace Healthcare_Data_Management_System.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(appointment);
-        }
+        }*/
 
         //delete operation
-        [HttpPost, ActionName("Delete")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAppointment(int id)
+        {
+            using (var connection = new SqlConnection("YourConnectionString"))
+            {
+                var query = "DELETE FROM Appointments WHERE ID = @ID";
+                var affectedRows = await connection.ExecuteAsync(query, new { ID = id });
+                if (affectedRows == 0)
+                {
+                    return NotFound();
+                }
+            }
+
+            return NoContent();
+        }
+        /*[HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
@@ -87,6 +163,6 @@ namespace Healthcare_Data_Management_System.Controllers
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
+        }*/
     }
 }
