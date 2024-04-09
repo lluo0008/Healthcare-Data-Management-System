@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "scripts": {
+    "start": "dotnet run",
+    "start:react": "cd client && npm start",
+    "start:both": "concurrently \"dotnet run\" \"npm run start:react\""
+  },
+  "dependencies": {
+    "http-proxy-middleware": "^3.0.0"
+  }
+}
